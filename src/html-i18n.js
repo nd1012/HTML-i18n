@@ -1,18 +1,36 @@
 /*
- * Version: 1
+ * Version: 2
  * License: MIT
  * GitHub page: https://github.com/nd1012/HTML-i18n
  */
 
-// Translate i18n text node contents in the DOM
-function i18n_translate(getInfoOnly,missingOnly){
-		// Found texts
-	const res={},
+// Translate i18n text node contents in the DOM or a single text
+function i18n_translate(getInfoOnly,missingOnly,warn){
+	// Prepare
 		// Browser extension API
-		api=chrome||msBrowser||browser,
+	const api=chrome||msBrowser||browser,
 		// Attribute names
-		attrs=api.i18n?['Title','Alt','Value']:null;
-	if(!api.i18n) return res;// i18n API not supported by browser
+		attrs=api.i18n?['Title','Alt','Value']:null,
+		// Translate only?
+		translate=typeof getInfoOnly=='string',
+		// Log a warning on missing translation?
+		warning=(translate&&missingOnly)||(!translate&&warn),
+		// Message ID to use
+		messageId=translate?getInfoOnly:null,
+		// Found texts
+		res=translate?null:{};
+	// Ensure the i18n API is useable
+	if(!api.i18n) return translate?'':res;// i18n API not supported by browser
+	// Get the translation for a message ID
+	if(translate){
+		let translation=api.i18n.getMessage(messageId);
+		if(warning&&translation==''){
+			console.warn('Missing translation for "'+messageId+'"');
+			console.trace();
+		}
+		return translation;
+	}
+	// Translate the DOM
 		// A found message ID
 	var id,
 		// If the translation is HTML
@@ -41,6 +59,8 @@ function i18n_translate(getInfoOnly,missingOnly){
 			}else{
 				element.innerText=translation;
 			}
+		if(warning&&translation=='')
+			console.log('Missing translation "'+id+'"',element);
 		for(const attr of attrs){
 			if(!element.hasAttribute(attr)) continue;
 			attrId=id+attr;
@@ -54,6 +74,8 @@ function i18n_translate(getInfoOnly,missingOnly){
 				};
 			if(translation!=''&&!getInfoOnly)
 				element.setAttribute(attr,translation);
+			if(warning&&translation=='')
+				console.log('Missing translation "'+attrId+'"',element);
 		}
 	}
 	return res;

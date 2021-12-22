@@ -50,6 +50,12 @@ To apply a translation to the current DOM:
 i18n_translate();
 ```
 
+To get a warning in the JavaScript console on missing translations:
+
+```js
+i18n_translate(false,false,true);
+```
+
 **NOTE**: In case the i18n API returned an empty string, the current text will stay unchanged.
 
 ### Attribute to translate the inner text
@@ -65,6 +71,18 @@ Use the `data-i18nhtml` attribute to specify the i18n ID of the message that's g
 If a HTML element has the `data-i18n*` attribute, and it has `title`, `alt` or `value` attributes, too, the `i18n_translate` function will translate their contents, if the `messages.js` contains a message ID having the ID from the `data-i18n*` attribute as prefix, and the capitalized attribute name (`Title`, `Alt` or `Value`) as postfix.
 
 In case you want to translate the attribute values only, simply omit the message for the ID defined in the `data-i18n*` attribute.
+
+## Translate a single string
+
+```js
+const translated = i18n_translate('messageId');
+```
+
+Or with warning and stack trace on missing translation:
+
+```js
+const translated = i18n_translate('messageId',true);
+```
 
 ## Translation information
 
