@@ -1,0 +1,17 @@
+name: Push actions
+on: [push]
+jobs:
+  Push-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
+    
+      - name: Minify CSS/JS
+        uses: nizarmah/auto-minify@v2.1.1
+    
+      - name: Commit modified files
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "GitHub action: Push actions"
+          branch: ${{ github.ref }}

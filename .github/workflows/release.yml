@@ -1,0 +1,36 @@
+name: Publish release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version number
+        required: true
+jobs:
+  Release-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v2
+
+      - name: Create branch
+        uses: peterjgrainger/action-create-branch@v2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          branch: 'v${{ github.event.inputs.version }}'
+
+      - name: Checkout branch
+        uses: actions/checkout@v2
+        with:
+          ref: 'v${{ github.event.inputs.version }}'
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: 'v${{ github.event.inputs.version }}'
+          release_name: 'Version ${{ github.event.inputs.version }}'
+          draft: true
+          prerelease: false
