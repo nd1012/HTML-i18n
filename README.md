@@ -2,6 +2,26 @@
 
 A JavaScript tool for browser extensions and normal websites that want to use the i18n API (or the emulation) with HTML.
 
+- [Usage](#usage)
+	- [Load the library](#load-the-library)
+	- [Apply translations for HTML](#apply-translations-for-html)
+		- [Attribute to translate the inner text](#attribute-to-translate-the-inner-text)
+		- [Attribute to translate the inner HTML](#attribute-to-translate-the-inner-html)
+		- [Translating title, alternative text and value](#translating-title-alternative-text-and-value)
+	- [Translate in JavaScript](#translate-in-javascript)
+		- [Just text or with variables](#just-text-or-with-variables)
+		- [Get the translation for a message ID](#get-the-translation-for-a-message-id)
+		- [Get the translations for a list of message IDs](#get-the-translations-for-a-list-of-message-ids)
+		- [Translate a single HTML element](#translate-a-single-html-element)
+- [Translation information](#translation-information)
+- [Functionality for normal websites](#functionality-for-normal-websites)
+	- [Change the current locale](#change-the-current-locale)
+	- [Determine the locale](#determine-the-locale)
+	- [Load messages of a locale](#load-messages-of-a-locale)
+	- [Plural](#plural)
+	- [Parse placeholders](#parse-placeholders)
+	- [Global constants / variables](#global-constants-variables)
+
 ## Usage
 
 ### Load the library
@@ -116,7 +136,46 @@ If a HTML element has the `data-i18n*` attribute, and it has `title`, `alt` or `
 
 In case you want to translate the attribute values only, simply omit the message for the ID defined in the `data-i18n*` attribute.
 
-## Get the translation for a message ID
+### Translate in JavaScript
+
+#### Just text or with variables
+
+Just text:
+
+```js
+const text = i18n_text('messageId');
+```
+
+With variables:
+
+```js
+const text = i18n_text('messageId','value1','value2',...);
+```
+
+Example `messages.json` for variables:
+
+```json
+{
+	"messageId": {
+		"message": "Resulting text with $value1$ and $value2$",
+		"placeholders": {
+			"value1": {
+				"content": "$1",
+				"example": "Any value"
+			},
+			"value2": {
+				"content": "$2",
+				"example": "Any value"
+			}
+		}
+	},
+	...
+}
+```
+
+See the [Mozilla reference](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/i18n/Locale-Specific_Message_reference) for details.
+
+#### Get the translation for a message ID
 
 ```js
 const translated = i18n_translate('messageId');
@@ -128,7 +187,7 @@ Or with warning and stack trace on missing translation:
 const translated = i18n_translate('messageId',true);
 ```
 
-## Get the translations for a list of message IDs
+#### Get the translations for a list of message IDs
 
 
 ```js
@@ -141,7 +200,7 @@ Or with warning and stack trace on missing translations:
 const translated = i18n_translate(['messageId',...],true);
 ```
 
-## Translate a single HTML element
+#### Translate a single HTML element
 
 ```js
 i18n_translate(document.querySelector('#element'));
@@ -265,6 +324,54 @@ Both arguments are optional:
 
 If no messages for the used default locale were found on the server, the messages will be set from the DOM.
 
+### Plural
+
+Give the message ID and a number as parameters (and optional add variables as required):
+
+```js
+const text = i18n_plural('messageId',3);
+```
+
+Example `messages.json` for plural:
+
+```json
+{
+	"messageId": {
+		"message": "Resulting singular text",
+		"plural": "Resulting text for a number greater than one"
+	},
+	...
+}
+```
+
+Example `messages.json` for multiple plural:
+
+```json
+{
+	"messageId": {
+		"message": "Resulting singular text",
+		"plural": {
+			"2": "Resulting text for a number of a maximum of 2",
+			"3": "Resulting text for a number of a maximum of 3",
+			"": "Resulting text for a number greater than 3"
+		}
+	},
+	...
+}
+```
+
+Multiple plural forms may be required in some languages.
+
+### Parse placeholders
+
+In case you have a string and its message ID, the string contains variables, and you want to replace them with values:
+
+```js
+const text = i18n_var('messageId','Text with $placeholder$','placeholder value');
+```
+
+You may add any number of variables required.
+
 ### Global constants / variables
 
 - `i18n_defaultLocale`: Default locale (`en`)
@@ -272,7 +379,3 @@ If no messages for the used default locale were found on the server, the message
 - `i18n_locale`: Current locale
 - `i18n_localeUri`: Base URI to the locales
 - `i18n_localeInfo`: If having locales information, or the loaded locales information
-
-## Limitations
-
-Things like variables and plural etc. are not supported.

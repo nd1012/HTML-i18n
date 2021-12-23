@@ -126,6 +126,121 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 	return res;
 };
 
+// Translate a message ID with optional parameters
+const i18n_text=(...param)=>{
+	// Translate
+		// Message ID
+	const id=param.shift(),
+		// Translation
+		text=i18n_translate(param[0]);
+	if(text=='') return text;
+	// Interpret variables
+	param.unshift(text);
+	param.unshift(id);
+	return i18n_var(param);
+};
+
+// Get a plural translation with optional parameters
+const i18n_plural=(...param)=>{
+	// Fallback to normal translation, if running in browser extension context
+		// Browser extension i18n API
+	const api=(chrome||msBrowser||browser)?.i18n||null,
+		// Message ID
+		id=param.shift(),
+		// Count
+		count=param.shift();
+	if(api){
+		param.unshift(id);
+		return i18n_text(param);
+	}
+	// Try the plural translation
+		// Plural string
+	const ps='plural',
+		// Undefined string
+		undef='undefined',
+		// Plural
+		plural=i18n_locale!=null&&
+			typeof i18n_messages[i18n_locale]!=undef&&
+			typeof i18n_messages[i18n_locale][id]!=undef&&
+			typeof i18n_messages[i18n_locale][id][ps]!=undef
+			?i18n_messages[i18n_locale][id][ps]
+			:null,
+		// Maximum counter values
+		maxCounter=plural&&typeof plural!='string'?Object.keys(plural).sort((a,b)=>+a-+b):null;
+	if(plural==null){
+		// Raise a warning, if the translation doesn't define any plural information
+		console.warn(
+			'No plural available for "'+id+'"',
+			i18n_locale!=null&&
+				typeof i18n_messages[i18n_locale]!=undef&&
+				typeof i18n_messages[i18n_locale][id]!=undef
+				?i18n_messages[i18n_locale][id]
+				:'(unknown message ID)'
+			);
+		console.trace();
+		param.unshift(id);
+		return i18n_text(param);
+	}
+		// Plural value
+	var text=maxCounter==null?plural:null;
+	if(!maxCounter)
+		for(const max in maxCounter)
+			if(max!=''&&count<=max){
+				text=plural[max];
+				break;
+			}
+	// Use the default, if no plural was found
+	if(text==null) text=typeof plural['']!=undefined?plural['']:i18n_translate(id);
+	// Interpret variables
+	param.unshift(text);
+	param.unshift(id);
+	return i18n_var(param);
+};
+
+// Replace variables
+const i18n_var=(...param)=>{
+		// Browser extension i18n API
+	const api=(chrome||msBrowser||browser)?.i18n||null,
+		// Message ID
+		id=param.shift(),
+		// Translation
+		text=param.shift();
+	// Don't do anything, if in extension context
+	if(!api) return text;
+	// Interpret variables
+		// Placeholders string
+	const phs='placeholders',
+		// Placeholders 
+		placeholders=i18n_locale!=null&&
+			typeof i18n_messages[i18n_locale]!=undef&&
+			typeof i18n_messages[i18n_locale][id]!=undef&&
+			typeof i18n_messages[i18n_locale][id][phs]!=undef
+			?i18n_messages[i18n_locale][id][phs]
+			:null,
+		// Regular expression to match a parameter number
+		rx=/^\$\d+$/;
+		// Placeholder value
+	var value;
+	if(!placeholders&&param.length){
+		// Raise a warning, if variables are given, but the translation doesn't define any placeholder
+		console.warn(
+			'No variables allowed for "'+id+'"',
+			i18n_locale!=null&&
+				typeof i18n_messages[i18n_locale]!=undef&&
+				typeof i18n_messages[i18n_locale][id]!=undef
+				?i18n_messages[i18n_locale][id]
+				:'(unknown message ID)'
+			);
+		console.trace();
+		return text;
+	}
+	for(const [key,def] of Object.entries(placeholders)){
+		value=rx.test(def.content)?param[parseInt(def.content.substring(1))-1]:def.content;
+		text=text.replace('$'+key+'$',value);
+	}
+	return text;
+};
+
 // Determine the user locale
 const i18n_determineLocale=async ()=>{
 	// Use the current locale, if set

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://cdn.jsdelivr.net/gh/nd1012/HTML-i18n/src/html-i18n.min.js"></script>
+<script>
+window.addEventListener('load',async ()=>{
+	document.getElementById('en').innerText=await (await fetch('/_locales/en/messages.json')).text();
+	await i18n_init();
+	document.getElementByid('demo4').innerText=i18n_text('demo4','value');
+	document.getElementByid('demo5').innerText=i18n_plural('demo5_6',1);
+	document.getElementByid('demo6').innerText=i18n_plural('demo5_6',2);
+});
+async function switchLocale(){
+	const html=document.querySelector('html'),
+		locale=html.getAttribute('lang');
+	await i18n_setLocale(locale=='en'?'de':'en');
+}
+</script>
+</head>
+<body>
+<h1>HTML i18n demonstration</h1>
+<p data-i18ntext="demo1">This text will be translated as text.</p>
+<p data-i18nhtml="demo2">This text will be translated as <strong>HTML</strong>.</p>
+<p data-i18ntext="demo3" title="Translated text">This text won't be translated - but its title will (hover withthe mouse).</p>
+<p id="demo4"></p>
+<p id="demo5"></p>
+<p id="demo6"></p>
+<button onclick="switchLocale();">Switch the locale en &lt;-&gt; de</button>
+<h2>English <code>messages.json</code></h2>
+<pre id="en"></pre>
+</body>
+</html>

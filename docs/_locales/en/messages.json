@@ -1,0 +1,25 @@
+{
+	"demo1": {
+		"message": "This text will be translated as text."
+	},
+	"demo2": {
+		"message": "This text will be translated as <strong>HTML</strong>."
+	},
+	"demo3Title": {
+		"message": "Translated text"
+	},
+	"demo4": {
+		"message": "Text with a $placeholder$",
+		"placeholders": {
+			"placeholder": {
+				"content": "$1"
+			}
+		}
+	},
+	"demo5_6": {
+		"plural": {
+			"1": "Singular text",
+			"": "Plural text"
+		}
+	}
+}
