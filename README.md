@@ -80,6 +80,8 @@ Example for a `locales.json` file within the locales base URI:
 
 **NOTE**: The default locale is `en`!
 
+See the [Online demonstration](https://nd1012.github.io/HTML-i18n/) for a live example.
+
 ### Apply translations for HTML
 
 A simple sample HTML:
