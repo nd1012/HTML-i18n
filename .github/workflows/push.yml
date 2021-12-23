@@ -6,6 +6,10 @@ jobs:
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
+      
+      - name: Copy files
+        run: | 
+          cp -f ${GITHUB_WORKSPACE}/src/html-i18n.js ${GITHUB_WORKSPACE}/docs/
     
       - name: Minify CSS/JS
         uses: nizarmah/auto-minify@v2.1.1

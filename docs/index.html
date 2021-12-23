@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://cdn.jsdelivr.net/gh/nd1012/HTML-i18n/src/html-i18n.min.js"></script>
+<script src="html-i18n.min.js"></script>
 <script>
 window.addEventListener('load',async ()=>{
 	document.getElementById('en').innerText=await (await fetch('/HTML-i18n/locales/en/messages.json')).text();
