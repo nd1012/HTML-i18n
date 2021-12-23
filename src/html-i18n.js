@@ -17,7 +17,7 @@ var i18n_locale=null,
 	i18n_localeInfo=false;
 
 // Translate the DOM or a single message ID, or a list of message IDs, or a single HTML element
-function i18n_translate(getInfoOnly,missingOnly,warn){
+const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 	// Translate a list of message IDs
 	if(typeof getInfoOnly=='array'){
 			// Texts
@@ -124,10 +124,10 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 	// Translate the DOM
 	for(const element of document.querySelectorAll('*[data-i18ntext],*[data-i18nhtml]')) handleElement(element);
 	return res;
-}
+};
 
 // Determine the user locale
-async function i18n_determineLocale(){
+const i18n_determineLocale=async ()=>{
 	// Use the current locale, if set
 	if(i18n_locale!=null) return i18n_locale;
 	// Determine the locale from the i18n API or the browser
@@ -138,10 +138,10 @@ async function i18n_determineLocale(){
 	// Normalize the locale
 	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
 	return locale;
-}
+};
 
 // Load messages for a locale (if not given, the current locale will be used)
-async function i18n_loadMessages(locale,fallBack){
+const i18n_loadMessages=async (locale,fallBack)=>{
 		// Undefined string
 	const undef='undefined',
 		// Messages file URI
@@ -181,10 +181,10 @@ async function i18n_loadMessages(locale,fallBack){
 	// Store and return the loaded messages, or apply the fallback
 	if(fallBack&&!messages) return await i18n_loadMessages(i18n_defaultLocale);
 	return i18n_messages[locale]=messages?messages:null;
-}
+};
 
 // Set the current locale
-async function i18n_setLocale(locale,warn){
+const i18n_setLocale=async (locale,warn)=>{
 	// Normalize the locale
 	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
 	// Set the current locale
@@ -202,10 +202,10 @@ async function i18n_setLocale(locale,warn){
 	const messages=api?null:await i18n_loadMessages(null,true);
 	i18n_translate(false,false,!!warn);
 	return messages;
-}
+};
 
 // Initialize
-async function i18n_init(uri,hasLocalesInfo,warn){
+const i18n_init=async (uri,hasLocalesInfo,warn)=>{
 	// Set if locales information file is available
 	if(hasLocalesInfo&&!i18n_localeInfo) i18n_localeInfo=true;
 	// Set the locales URI
@@ -214,4 +214,4 @@ async function i18n_init(uri,hasLocalesInfo,warn){
 	await i18n_setLocale(await i18n_determineLocale(),!!warn);
 	// Return the current locale
 	return i18n_locale;
-}
+};

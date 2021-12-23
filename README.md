@@ -265,6 +265,14 @@ Both arguments are optional:
 
 If no messages for the used default locale were found on the server, the messages will be set from the DOM.
 
+### Global constants / variables
+
+- `i18n_defaultLocale`: Default locale (`en`)
+- `i18n_messages`: Loaded messages
+- `i18n_locale`: Current locale
+- `i18n_localeUri`: Base URI to the locales
+- `i18n_localeInfo`: If having locales information, or the loaded locales information
+
 ## Limitations
 
 Things like variables and plural etc. are not supported.
