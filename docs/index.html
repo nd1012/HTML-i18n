@@ -5,7 +5,7 @@
 <script>
 window.addEventListener('load',async ()=>{
 	document.getElementById('en').innerText=await (await fetch('/_locales/en/messages.json')).text();
-	await i18n_init();
+	await i18n_init('/HTML-i18n/_locales');
 	document.getElementByid('demo4').innerText=i18n_text('demo4','value');
 	document.getElementByid('demo5').innerText=i18n_plural('demo5_6',1);
 	document.getElementByid('demo6').innerText=i18n_plural('demo5_6',2);
