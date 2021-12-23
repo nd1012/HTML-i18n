@@ -4,8 +4,8 @@
 <script src="https://cdn.jsdelivr.net/gh/nd1012/HTML-i18n/src/html-i18n.min.js"></script>
 <script>
 window.addEventListener('load',async ()=>{
-	document.getElementById('en').innerText=await (await fetch('/HTML-i18n/_locales/en/messages.json')).text();
-	await i18n_init('/HTML-i18n/_locales');
+	document.getElementById('en').innerText=await (await fetch('/HTML-i18n/locales/en/messages.json')).text();
+	await i18n_init('/HTML-i18n/locales');
 	document.getElementByid('demo4').innerText=i18n_text('demo4','value');
 	document.getElementByid('demo5').innerText=i18n_plural('demo5_6',1);
 	document.getElementByid('demo6').innerText=i18n_plural('demo5_6',2);
