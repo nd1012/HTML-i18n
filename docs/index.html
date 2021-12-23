@@ -6,14 +6,19 @@
 window.addEventListener('load',async ()=>{
 	document.getElementById('en').innerText=await (await fetch('/HTML-i18n/locales/en/messages.json')).text();
 	await i18n_init('/HTML-i18n/locales');
-	document.getElementById('demo4').innerText=i18n_text('demo4','value');
-	document.getElementById('demo5').innerText=i18n_plural('demo5_6',1);
-	document.getElementById('demo6').innerText=i18n_plural('demo5_6',2);
+	finalizeDemo();
 });
 async function switchLocale(){
 	const html=document.querySelector('html'),
 		locale=html.getAttribute('lang');
 	await i18n_setLocale(locale=='en'?'de':'en');
+	finalizeDemo();
+}
+function finalizeDemo(){
+	document.getElementById('demo4').innerText=i18n_text('demo4','value');
+	document.getElementById('demo5').innerText=i18n_plural('demo5_6',1);
+	document.getElementById('demo6').innerText=i18n_plural('demo5_6',2);
+	document.getElementById('locale').innerText=i18n_locale;
 }
 </script>
 </head>
@@ -25,6 +30,7 @@ async function switchLocale(){
 <p id="demo4"></p>
 <p id="demo5"></p>
 <p id="demo6"></p>
+<p>Current locale: <span id="locale"></span></p>
 <button onclick="switchLocale();">Switch the locale en &lt;-&gt; de</button>
 <h2>English <code>messages.json</code></h2>
 <pre id="en"></pre>

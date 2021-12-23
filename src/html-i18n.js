@@ -49,6 +49,8 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 		empty='',
 		// Undefined string
 		undef='undefined',
+		// Message string
+		ms='message',
 		// Inner text property name
 		innerText='innerText',
 		// Inner HTML property name
@@ -56,7 +58,7 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 		// Create an error message when missing a translation
 		missingTranslation=(id)=>'Missing translation "'+id+'"',
 		// Attribute names
-		attrs=api?['Title','Alt','Value']:null,
+		attrs=['Title','Alt','Value'],
 		// Translate only?
 		translate=typeof getInfoOnly=='string',
 		// Log a warning on missing translation?
@@ -68,9 +70,12 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 		// Translate a message ID
 		translateMessage=(id)=>{
 			if(api) return api.getMessage(id);
-			return i18n_locale==null||typeof i18n_messages[i18n_locale]==undef||typeof i18n_messages[i18n_locale][id]==undef
+			return i18n_locale==null||
+				typeof i18n_messages[i18n_locale]==undef||
+				typeof i18n_messages[i18n_locale][id]==undef||
+				typeof i18n_messages[i18n_locale][id][ms]==undef
 				?empty
-				:i18n_messages[i18n_locale][id];
+				:i18n_messages[i18n_locale][id][ms];
 		},
 		// Handle a HTML element
 		handleElement=(element)=>{
@@ -100,12 +105,12 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 				if(warning&&translation==empty) console.warn(missingTranslation(attrId),element);
 			}
 		};
-	// Ensure the i18n API is useable
-	if(!api) return translate?empty:res;// i18n API not supported by browser
 	// Get the translation for a message ID
 	if(translate){
+			// Translation
 		const translation=translateMessage(messageId);
 		if(warning&&translation==empty){
+			// Raise a warning, if a translation is missing
 			console.warn(missingTranslation(messageId));
 			console.trace();
 		}
@@ -132,12 +137,12 @@ const i18n_text=(...param)=>{
 		// Message ID
 	const id=param.shift(),
 		// Translation
-		text=i18n_translate(param[0]);
+		text=i18n_translate(id);
 	if(text=='') return text;
 	// Interpret variables
 	param.unshift(text);
 	param.unshift(id);
-	return i18n_var(param);
+	return i18n_var(...param);
 };
 
 // Get a plural translation with optional parameters
@@ -151,7 +156,7 @@ const i18n_plural=(...param)=>{
 		count=param.shift();
 	if(api||count==1){
 		param.unshift(id);
-		return i18n_text(param);
+		return i18n_text(...param);
 	}
 	// Try the plural translation
 		// Plural string
@@ -179,7 +184,7 @@ const i18n_plural=(...param)=>{
 			);
 		console.trace();
 		param.unshift(id);
-		return i18n_text(param);
+		return i18n_text(...param);
 	}
 		// Plural value
 	var text=maxCounter==null?plural:null;
@@ -194,7 +199,7 @@ const i18n_plural=(...param)=>{
 	// Interpret variables
 	param.unshift(text);
 	param.unshift(id);
-	return i18n_var(param);
+	return i18n_var(...param);
 };
 
 // Replace variables
@@ -203,10 +208,12 @@ const i18n_var=(...param)=>{
 	const api=(chrome||msBrowser||browser)?.i18n||null,
 		// Message ID
 		id=param.shift(),
+		// Undefined string
+		undef='undefined';
 		// Translation
-		text=param.shift();
+	var text=param.shift();
 	// Don't do anything, if in extension context
-	if(!api) return text;
+	if(api) return text;
 	// Interpret variables
 		// Placeholders string
 	const phs='placeholders',
@@ -221,17 +228,20 @@ const i18n_var=(...param)=>{
 		rx=/^\$\d+$/;
 		// Placeholder value
 	var value;
-	if(!placeholders&&param.length){
-		// Raise a warning, if variables are given, but the translation doesn't define any placeholder
-		console.warn(
-			'No variables allowed for "'+id+'"',
-			i18n_locale!=null&&
-				typeof i18n_messages[i18n_locale]!=undef&&
-				typeof i18n_messages[i18n_locale][id]!=undef
-				?i18n_messages[i18n_locale][id]
-				:'(unknown message ID)'
-			);
-		console.trace();
+	if(!placeholders){
+		// No variables defined
+		if(param.length){
+			// Raise a warning, if variables are given, but the translation doesn't define any placeholder
+			console.warn(
+				'No variables allowed for "'+id+'"',
+				i18n_locale!=null&&
+					typeof i18n_messages[i18n_locale]!=undef&&
+					typeof i18n_messages[i18n_locale][id]!=undef
+					?i18n_messages[i18n_locale][id]
+					:'(unknown message ID)'
+				);
+			console.trace();
+		}
 		return text;
 	}
 	for(const [key,def] of Object.entries(placeholders)){
