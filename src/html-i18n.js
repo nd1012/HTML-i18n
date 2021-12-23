@@ -149,7 +149,7 @@ const i18n_plural=(...param)=>{
 		id=param.shift(),
 		// Count
 		count=param.shift();
-	if(api){
+	if(api||count==1){
 		param.unshift(id);
 		return i18n_text(param);
 	}

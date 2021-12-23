@@ -17,8 +17,8 @@
 		}
 	},
 	"demo5_6": {
+		"message": "Singular Text",
 		"plural": {
-			"1": "Singular Text",
 			"": "Plural Text"
 		}
 	}
