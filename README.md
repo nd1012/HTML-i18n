@@ -72,7 +72,7 @@ If a HTML element has the `data-i18n*` attribute, and it has `title`, `alt` or `
 
 In case you want to translate the attribute values only, simply omit the message for the ID defined in the `data-i18n*` attribute.
 
-## Translate a single string
+## Get the translation for a message ID
 
 ```js
 const translated = i18n_translate('messageId');
@@ -84,9 +84,34 @@ Or with warning and stack trace on missing translation:
 const translated = i18n_translate('messageId',true);
 ```
 
+## Get the translations for a list of message IDs
+
+
+```js
+const translated = i18n_translate(['messageId',...]);
+```
+
+Or with warning and stack trace on missing translations:
+
+```js
+const translated = i18n_translate(['messageId',...],true);
+```
+
+## Translate a single HTML element
+
+```js
+i18n_translate(document.querySelector('#element'));
+```
+
+Or with warning on missing translations:
+
+```js
+i18n_translate(document.querySelector('#element'),true);
+```
+
 ## Translation information
 
-The `i18n_translate` function returns an object with the collected translation information, which may look like this:
+When translating the DOM or a single HTML element, the `i18n_translate` function returns an object with the collected translation information, which may look like this:
 
 ```json
 {
