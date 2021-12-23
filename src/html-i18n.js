@@ -1,8 +1,20 @@
 /*
- * Version: 3
+ * Version: 4
  * License: MIT
  * GitHub page: https://github.com/nd1012/HTML-i18n
  */
+
+	// Default locale
+const i18n_defaultLocale='en',
+	// Loaded messages
+	i18n_messages={};
+
+	// Current locale
+var i18n_locale=null,
+	// The base locale URI (without trailing slash)
+	i18n_localeUri=null,
+	// Does the server provide a locales.json file? If loaded, the value is the loaded array
+	i18n_localeInfo=false;
 
 // Translate the DOM or a single message ID, or a list of message IDs, or a single HTML element
 function i18n_translate(getInfoOnly,missingOnly,warn){
@@ -25,8 +37,8 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 		translation,
 		// Attribute message ID
 		attrId;
-		// Browser extension API
-	const api=(chrome||msBrowser||browser).i18n||null,
+		// Browser extension i18n API
+	const api=(chrome||msBrowser||browser)?.i18n||null,
 		// i18n HTML attribute
 		i18nhtml='data-i18nhtml',
 		// i18n text attribute
@@ -35,6 +47,8 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 		i18ninfo='data-i18ninfo',
 		// Empty string
 		empty='',
+		// Undefined string
+		undef='undefined',
 		// Inner text property name
 		innerText='innerText',
 		// Inner HTML property name
@@ -51,11 +65,18 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 		messageId=translate?getInfoOnly:null,
 		// Found texts
 		res=translate?null:{},
+		// Translate a message ID
+		translateMessage=(id)=>{
+			if(api) return api.getMessage(id);
+			return i18n_locale==null||typeof i18n_messages[i18n_locale]==undef||typeof i18n_messages[i18n_locale][id]==undef
+				?empty
+				:i18n_messages[i18n_locale][id];
+		},
 		// Handle a HTML element
 		handleElement=(element)=>{
 			html=element.hasAttribute(i18nhtml);
 			info=element.getAttribute(i18ninfo);
-			translation=api.getMessage(id=element.getAttribute(html?i18nhtml:i18ntext));
+			translation=translateMessage(id=element.getAttribute(html?i18nhtml:i18ntext));
 			if(translation==empty||!missingOnly) res[id]={
 					message:element[html?innerHTML:innerText],
 					description:info,
@@ -64,10 +85,10 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 					missing:translation==empty
 				};
 			if(translation!=empty&&!getInfoOnly) element[html?innerHTML:innerText]=translation;
-			if(warning&&translation==empty) console.log(missingTranslation(id),element);
+			if(warning&&translation==empty) console.warn(missingTranslation(id),element);
 			for(const attr of attrs){
 				if(!element.hasAttribute(attr)) continue;
-				translation=api.getMessage(attrId=id+attr);
+				translation=translateMessage(attrId=id+attr);
 				if(translation==empty||!missingOnly) res[attrId]={
 						message:element.getAttribute(attr),
 						description:info==null?null:info+' ('+attr+')',
@@ -76,14 +97,14 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 						missing:translation==empty
 					};
 				if(translation!=empty&&!getInfoOnly) element.setAttribute(attr,translation);
-				if(warning&&translation==empty) console.log(missingTranslation(attrId),element);
+				if(warning&&translation==empty) console.warn(missingTranslation(attrId),element);
 			}
 		};
 	// Ensure the i18n API is useable
 	if(!api) return translate?empty:res;// i18n API not supported by browser
 	// Get the translation for a message ID
 	if(translate){
-		const translation=api.getMessage(messageId);
+		const translation=translateMessage(messageId);
 		if(warning&&translation==empty){
 			console.warn(missingTranslation(messageId));
 			console.trace();
@@ -103,4 +124,94 @@ function i18n_translate(getInfoOnly,missingOnly,warn){
 	// Translate the DOM
 	for(const element of document.querySelectorAll('*[data-i18ntext],*[data-i18nhtml]')) handleElement(element);
 	return res;
+}
+
+// Determine the user locale
+async function i18n_determineLocale(){
+	// Use the current locale, if set
+	if(i18n_locale!=null) return i18n_locale;
+	// Determine the locale from the i18n API or the browser
+		// Browser extension i18n API
+	const api=(chrome||msBrowser||browser)?.i18n||null;
+		// Determined locale
+	var locale=api?(await api.getAcceptLanguages())[0]:navigator.language;
+	// Normalize the locale
+	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
+	return locale;
+}
+
+// Load messages for a locale (if not given, the current locale will be used)
+async function i18n_loadMessages(locale,fallBack){
+		// Undefined string
+	const undef='undefined',
+		// Messages file URI
+		msgs='/messages.json';
+	// Ensure having a locale
+	if(typeof locale==undef||locale==null) locale=await i18n_determineLocale();
+	// Normalize the locale
+	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
+	// Return the already loaded messages
+	if(typeof i18n_messages[locale]!=undef)
+		return !i18n_messages[locale]&&fallBack?await i18n_loadMessages(i18n_defaultLocale):i18n_messages[locale];
+	// Load the messages
+		// Locales base URI
+	const baseUri=i18n_localeUri==null?'/_locales':i18n_localeUri;
+	if(i18n_localeInfo){
+		// Determine from the locales information if the locale exists
+		if(typeof i18n_localeInfo!='array') i18n_localeInfo=await (await fetch(baseUri+'/locales.json')).json();
+		if(i18n_localeInfo&&typeof i18n_localeInfo[locale]==undef)
+			// Return the default locale messages, if the locale doesn't exist
+			if(locale.length>2){
+				// Try the language of a locale, if the locale doesn't exist
+				locale=locale.substring(0,2);
+				if(typeof i18n_localeInfo[locale]==undef) return await i18n_loadMessages(i18n_defaultLocale);
+			}else{
+				return await i18n_loadMessages(i18n_defaultLocale);
+			}
+	}
+		// Loaded messages
+	var messages=await (await fetch(baseUri+'/'+locale+msgs)).json();
+	// Try the language of a locale, if the messages couldn't be loaded from the locale
+	if(!messages&&locale.lenght>2){
+		locale=locale.substring(0,2);
+		messages=await (await fetch(baseUri+'/'+locale+msgs)).json();
+	}
+	// If the default locale has no messages, get the messages from the DOM
+	if(!messages&&locale==i18n_defaultLocale) i18n_messages[i18n_defaultLocale]=messages=i18n_translate(true);
+	// Store and return the loaded messages, or apply the fallback
+	if(fallBack&&!messages) return await i18n_loadMessages(i18n_defaultLocale);
+	return i18n_messages[locale]=messages?messages:null;
+}
+
+// Set the current locale
+async function i18n_setLocale(locale,warn){
+	// Normalize the locale
+	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
+	// Set the current locale
+	i18n_locale=locale;
+	// Update the HTML lang attribute
+		// Browser extension i18n API
+	const api=(chrome||msBrowser||browser)?.i18n||null,
+		// HTML tag
+		html=document.querySelector('html'),
+		// Locale language
+		language=html?i18n_locale.substring(0,2):null;
+	if(html&&html.getAttribute('lang')!=language) html.setAttribute('lang',language);
+	// Translate the DOM
+		// Loaded messages
+	const messages=api?null:await i18n_loadMessages(null,true);
+	i18n_translate(false,false,!!warn);
+	return messages;
+}
+
+// Initialize
+async function i18n_init(uri,hasLocalesInfo,warn){
+	// Set if locales information file is available
+	if(hasLocalesInfo&&!i18n_localeInfo) i18n_localeInfo=true;
+	// Set the locales URI
+	if(typeof uri!='undefined') i18n_localeUri=uri;
+	// Set the current locale
+	await i18n_setLocale(await i18n_determineLocale(),!!warn);
+	// Return the current locale
+	return i18n_locale;
 }

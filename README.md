@@ -1,8 +1,10 @@
 # HTML i18n
 
-A JavaScript tool for browser extensions that want to use the i18n API with HTML.
+A JavaScript tool for browser extensions and normal websites that want to use the i18n API (or the emulation) with HTML.
 
 ## Usage
+
+### Load the library
 
 To load this tool in your HTML page:
 
@@ -16,7 +18,49 @@ To load this tool in your HTML page:
 ...
 ```
 
-Please read the [Mozilla i18n reference](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/i18n) and be sure to understand which folders and files, and which modifications in the manifest file of your browser extension are required in order to use the i18n API. You'll see that you can do many things already - but there's no support for HTML. This is where this JavaScript library comes into play.
+**NOTE**: Please read the [Mozilla i18n reference](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/i18n) and be sure to understand which folders and files, and which modifications in the manifest file of your browser extension are required in order to use the i18n API. You'll see that you can do many things already - but there's no support for HTML. This is where this JavaScript library comes into play.
+
+In case you don't use this library within a browser extension, but with a normal website, you need to initialize first:
+
+```html
+<script type="application/javascript">
+window.addEventListener('load',async ()=>await i18n_init());
+</script>
+```
+
+The `i18n_init` method takes these optional arguments:
+
+1. `uri`: The base URI to the locales (without trailing slash) (default: `/_locales`)
+2. `hasLocalesInfo`: If the locales URI serves an array of available locales in the file `locales.json`
+3. `warn`: Write a warning to the JavaScript console, if translations are missing?
+
+Example for a `locales.json` file within the locales base URI:
+
+```json
+[
+	"en",
+	"en_AU",
+	"en_CA",
+	"en_EN",
+	"en_US",
+	"de",
+	"de_AT",
+	"de_CH",
+	"fr",
+	"fr_CA",
+	"fr_CH",
+	"es",
+	"pt",
+	"it",
+	"it_CH",
+	"zh",
+	"hi_IN"
+]
+```
+
+**NOTE**: The default locale is `en`!
+
+### Apply translations for HTML
 
 A simple sample HTML:
 
@@ -58,15 +102,15 @@ i18n_translate(false,false,true);
 
 **NOTE**: In case the i18n API returned an empty string, the current text will stay unchanged.
 
-### Attribute to translate the inner text
+#### Attribute to translate the inner text
 
 Use the `data-i18ntext` attribute to specify the i18n ID of the message that's going to be set to the `innerText` property of the HTML element.
 
-### Attribute to translate the inner HTML
+#### Attribute to translate the inner HTML
 
 Use the `data-i18nhtml` attribute to specify the i18n ID of the message that's going to be set to the `innerHTML` property of the HTML element. The `message` in the `messages.json` should contain valid HTML in this case.
 
-### Translating title, alternative text and value
+#### Translating title, alternative text and value
 
 If a HTML element has the `data-i18n*` attribute, and it has `title`, `alt` or `value` attributes, too, the `i18n_translate` function will translate their contents, if the `messages.js` contains a message ID having the ID from the `data-i18n*` attribute as prefix, and the capitalized attribute name (`Title`, `Alt` or `Value`) as postfix.
 
@@ -185,3 +229,42 @@ The resulting JSON object for this example:
 	...
 }
 ```
+
+## Functionality for normal websites
+
+Within a browser extension the i18n browser API method `getMessage` will be used, only. But if you use this library in a normal website context, you can do more:
+
+### Change the current locale
+
+```js
+await i18n_setLocale('de');
+```
+
+This call will set the new current locale, load messages and translate the DOM.
+
+### Determine the locale
+
+```js
+const locale = await i18n_determineLocale();
+```
+
+The returned locale may be a full locale string like `en_US`, or the language only (like `en`).
+
+### Load messages of a locale
+
+```js
+const messages = await i18n_loadMessages('de',true);
+```
+
+This will load the messages of the given locale.
+
+Both arguments are optional:
+
+1. `locale`: The locale to use (default: the current or determined locale)
+2. `fallBack`: Use the default locale as fallback?
+
+If no messages for the used default locale were found on the server, the messages will be set from the DOM.
+
+## Limitations
+
+Things like variables and plural etc. are not supported.
