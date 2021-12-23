@@ -38,7 +38,7 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 		// Attribute message ID
 		attrId;
 		// Browser extension i18n API
-	const api=(chrome||msBrowser||browser)?.i18n||null,
+	const api=(chrome||msBrowser||browser)?.i18n,
 		// i18n HTML attribute
 		i18nhtml='data-i18nhtml',
 		// i18n text attribute
@@ -149,7 +149,7 @@ const i18n_text=(...param)=>{
 const i18n_plural=(...param)=>{
 	// Fallback to normal translation, if running in browser extension context
 		// Browser extension i18n API
-	const api=(chrome||msBrowser||browser)?.i18n||null,
+	const api=(chrome||msBrowser||browser)?.i18n,
 		// Message ID
 		id=param.shift(),
 		// Count
@@ -205,7 +205,7 @@ const i18n_plural=(...param)=>{
 // Replace variables
 const i18n_var=(...param)=>{
 		// Browser extension i18n API
-	const api=(chrome||msBrowser||browser)?.i18n||null,
+	const api=(chrome||msBrowser||browser)?.i18n,
 		// Message ID
 		id=param.shift(),
 		// Undefined string
@@ -257,7 +257,7 @@ const i18n_determineLocale=async ()=>{
 	if(i18n_locale!=null) return i18n_locale;
 	// Determine the locale from the i18n API or the browser
 		// Browser extension i18n API
-	const api=(chrome||msBrowser||browser)?.i18n||null;
+	const api=(chrome||msBrowser||browser)?.i18n;
 		// Determined locale
 	var locale=api?(await api.getAcceptLanguages())[0]:navigator.language;
 	// Normalize the locale
@@ -316,7 +316,7 @@ const i18n_setLocale=async (locale,warn)=>{
 	i18n_locale=locale;
 	// Update the HTML lang attribute
 		// Browser extension i18n API
-	const api=(chrome||msBrowser||browser)?.i18n||null,
+	const api=(chrome||msBrowser||browser)?.i18n,
 		// HTML tag
 		html=document.querySelector('html'),
 		// Locale language
