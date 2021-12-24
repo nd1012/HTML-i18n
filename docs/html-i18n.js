@@ -261,7 +261,7 @@ const i18n_determineLocale=async ()=>{
 		// Determined locale
 	var locale=api?(await api.getAcceptLanguages())[0]:navigator.language;
 	// Normalize the locale
-	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
+	if(locale.length>2&&locale.indexOf('-')==2) locale=locale.substring(0,2)+'_'+locale.substring(3);
 	return locale;
 };
 
@@ -274,7 +274,7 @@ const i18n_loadMessages=async (locale,fallBack)=>{
 	// Ensure having a locale
 	if(typeof locale==undef||locale==null) locale=await i18n_determineLocale();
 	// Normalize the locale
-	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
+	if(locale.length>2&&locale.indexOf('-')==2) locale=locale.substring(0,2)+'_'+locale.substring(3);
 	// Return the already loaded messages
 	if(typeof i18n_messages[locale]!=undef)
 		return !i18n_messages[locale]&&fallBack?await i18n_loadMessages(i18n_defaultLocale):i18n_messages[locale];
@@ -311,7 +311,7 @@ const i18n_loadMessages=async (locale,fallBack)=>{
 // Set the current locale
 const i18n_setLocale=async (locale,warn)=>{
 	// Normalize the locale
-	if(locale.length>2&&locale.indexOf('_')<0) locale=locale.substring(0,2)+'_'+locale.substring(3);
+	if(locale.length>2&&locale.indexOf('-')==2) locale=locale.substring(0,2)+'_'+locale.substring(3);
 	// Set the current locale
 	i18n_locale=locale;
 	// Update the HTML lang attribute
