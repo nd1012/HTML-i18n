@@ -1,5 +1,5 @@
 /*
- * Version: 4
+ * Version: 5
  * License: MIT
  * GitHub page: https://github.com/nd1012/HTML-i18n
  */
@@ -28,7 +28,7 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 	}
 	// Prepare
 		// A found message ID
-	var id,
+	let id,
 		// If the translation is HTML
 		html,
 		// The translation description
@@ -85,7 +85,7 @@ const i18n_translate=(getInfoOnly,missingOnly,warn)=>{
 			if(translation==empty||!missingOnly) res[id]={
 					message:element[html?innerHTML:innerText],
 					description:info,
-					html:html,
+					html,
 					attr:null,
 					missing:translation==empty
 				};
@@ -187,13 +187,13 @@ const i18n_plural=(...param)=>{
 		return i18n_text(...param);
 	}
 		// Plural value
-	var text=maxCounter==null?plural:null;
+	let text=maxCounter==null?plural:null;
 	if(!maxCounter)
-		for(const max in maxCounter)
-			if(max!=''&&count<=max){
-				text=plural[max];
-				break;
-			}
+		for(const max in maxCounter){
+			if(max==''||count>max) continue;
+			text=plural[max];
+			break;
+		}
 	// Use the default, if no plural was found
 	if(text==null) text=typeof plural['']!=undefined?plural['']:i18n_translate(id);
 	// Interpret variables
@@ -211,7 +211,7 @@ const i18n_var=(...param)=>{
 		// Undefined string
 		undef='undefined';
 		// Translation
-	var text=param.shift();
+	let text=param.shift();
 	// Don't do anything, if in extension context
 	if(api) return text;
 	// Interpret variables
@@ -227,7 +227,7 @@ const i18n_var=(...param)=>{
 		// Regular expression to match a parameter number
 		rx=/^\$\d+$/;
 		// Placeholder value
-	var value;
+	let value;
 	if(!placeholders){
 		// No variables defined
 		if(param.length){
@@ -259,7 +259,7 @@ const i18n_determineLocale=async ()=>{
 		// Browser extension i18n API
 	const api=(chrome||msBrowser||browser)?.i18n;
 		// Determined locale
-	var locale=api?(await api.getAcceptLanguages())[0]:navigator.language;
+	let locale=api?(await api.getAcceptLanguages())[0]:navigator.language;
 	// Normalize the locale
 	if(locale.length>2&&locale.indexOf('-')==2) locale=locale.substring(0,2)+'_'+locale.substring(3);
 	return locale;
@@ -295,7 +295,7 @@ const i18n_loadMessages=async (locale,fallBack)=>{
 			}
 	}
 		// Loaded messages
-	var messages=await (await fetch(baseUri+'/'+locale+msgs)).json();
+	let messages=await (await fetch(baseUri+'/'+locale+msgs)).json();
 	// Try the language of a locale, if the messages couldn't be loaded from the locale
 	if(!messages&&locale.lenght>2){
 		locale=locale.substring(0,2);
